@@ -1,3 +1,4 @@
+//https://www.youtube.com/watch?v=UFn0Zr21sZw&feature=youtu.be
 //http://www.jungol.co.kr/bbs/board.php?bo_table=pbank&wr_id=2465
 #pragma warning(disable: 4996)
 #pragma warning(disable: 6031)
@@ -5,55 +6,66 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define MAX (100000)
+const int MAX_NUM = (int)1e5 + 1;
+int N;
+int A[MAX_NUM];
+int B[MAX_NUM]; //temp
+long long Ans;
 
-int gNumber[MAX];
-
-void swap(int* a, int* b)
+void MergeSort(int s, int e)
 {
-    int temp = *b;
-    *b = *a;
-    *a = temp;
-}
-void printMap(int n)
-{
-    for (int i = 0; i < n; i++)
+    if (s >= e) return;
+    
+    //divide
+    int m = (s + e) / 2;
+    MergeSort(s, m);
+    MergeSort(m+1, e);
+    
+    //merge
+    int i = s;
+    int j = m + 1;
+    int k = s;
+    
+    while (i <= m && j <= e)
     {
-        printf("%d ", gNumber[i]);
+        if (A[i] <= A[j])
+        {
+            B[k++] = A[i++];
+        }
+        else
+        {
+            B[k++] = A[j++];
+            Ans = Ans + (long long)m + 1 - i;
+        }
     }
-    puts("");
+    while (i <= m) B[k++] = A[i++];
+    while (j <= e) B[k++] = A[j++];
+    
+    for (int i = s; i <= e; i++)
+    {
+        A[i] = B[i];
+    }
 }
+
 int main()
 {
     freopen("input.txt", "r", stdin);
-
-    int tcCnt;
-    scanf("%d", &tcCnt);
-
-    for (int tc = 0; tc < tcCnt; tc++)
+    
+    int tc;
+    scanf("%d", &tc);
+    while (tc--)
     {
-        int n;
-        scanf("%d", &n);
-        for (int i = 0; i < n; i++)
+        //init
+        Ans = 0;
+        scanf("%d", &N);
+        for (int i = 0; i < N; i++)
         {
-            scanf("%d", &gNumber[i]);
+            scanf("%d", &A[i]);
         }
 
         //solve
-        int cnt = 0;
-        for (int i = 1; i < n; i++)
-        {
-            for (int j = i; j > 0; j--)
-            {
-                if (gNumber[j-1] <= gNumber[j])
-                    break;
-
-                swap(&gNumber[j-1], &gNumber[j]);
-                cnt++;
-                //printMap(n);
-            }
-        }
-        printf("%d\n", cnt);
+        MergeSort(0, N-1);
+        printf("%lld\n", Ans);
     }
     return 0;
 }
