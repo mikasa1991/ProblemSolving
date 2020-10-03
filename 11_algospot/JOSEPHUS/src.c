@@ -21,9 +21,11 @@ typedef struct _List
     int idx;
     Node stHead;
     Node stTail;
+    int nodeCnt;
     void initialize()
     {
         idx = 0;
+        nodeCnt = 0;
         stHead.prev = NULL;
         stHead.next = &stTail;
         stTail.prev = &stHead;
@@ -46,6 +48,7 @@ typedef struct _List
         pNewNode->next = pNode;
         pNode->prev->next = pNewNode;
         pNode->prev = pNewNode;
+        nodeCnt++;
     }
     void printNode()
     {
@@ -57,8 +60,10 @@ typedef struct _List
     }
     void deleteNode(Node* pNode)
     {
+        assert(nodeCnt > 0);
         pNode->prev->next = pNode->next;
         pNode->next->prev = pNode->prev;
+        nodeCnt--;
     }
 }List;
 
@@ -76,20 +81,18 @@ int main()
         List stList;
         stList.initialize();
 
-        //linkedlist 형태로 삽입한다.
-        for (int i = 1; i <= N; i++)    //to delete 1, i just didn't insert that node.
+        for (int i = 1; i <= N; i++)
         {
             stList.insertNode(&stList.stTail, i);
         }
 
-        //1번 Node를 죽인다.
-        Node* pNode = stList.stHead.next;
-        stList.deleteNode(pNode);
-
-        //Loop: 생존자가 2명이하일 때, 탈출한다.
+        //Loop: 생존자가 2명일 때, 탈출한다.
         //Do  : K번 이동한다. 죽인다.
-        for (int listCnt = N - 1; listCnt > SURVIVOR_CNT; listCnt--)
+        Node* pNode = stList.stHead.next;
+        while (1)
         {
+            stList.deleteNode(pNode);
+            if (SURVIVOR_CNT == stList.nodeCnt) break;
             for (int i = 0; i < K; i++)
             {
                 if (pNode->next == &stList.stTail)
@@ -97,9 +100,7 @@ int main()
                 else
                     pNode = pNode->next;
             }
-            stList.deleteNode(pNode);
         }
-
         //생존자 2명을 출력한다.
         stList.printNode();
     }
