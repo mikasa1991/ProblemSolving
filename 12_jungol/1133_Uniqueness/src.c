@@ -16,9 +16,8 @@ typedef struct _Node
     _Node* next;
     char str[STR_LEN];
     int id;
-    bool bChecked;
 }Node;
-Node gstNotUsedNode[STR_CNT];
+Node gstNotUsedNode[STR_CNT*2];
 int gIdx;
 typedef struct _List
 {
@@ -42,6 +41,8 @@ typedef struct _List
         tail.prev = newNode;
     }
 }List;
+List gstHashTb[STR_CNT];
+List gstTb[STR_CNT];
 int hash(char* str)
 {
     int sum = 0;
@@ -51,62 +52,52 @@ int hash(char* str)
     }
     return (sum % STR_CNT);
 }
-List gstHashTb[STR_CNT];
+int gNewId;
+int getNewId(char* str)
+{
+    int id = hash(str);
+    for (Node* stTemp = gstHashTb[id].head.next; stTemp != &gstHashTb[id].tail; stTemp = stTemp->next)
+    {
+        if (0 == strcmp(stTemp->str, str))
+            return stTemp->id;
+    }
+
+    gNewId++;
+    gstHashTb[id].insert(str, gNewId);
+    return gNewId;
+}
 int main()
 {
     freopen("input.txt", "r", stdin);
     int N;
     scanf("%d", &N);
-    //printf("N=%d, insert hashTb\n", N);
-    for (int i = 0; i < N; i++)
+    for (int i = 1; i <= N; i++)
     {
         scanf("%s", STR[i]);
-        int hid = hash(STR[i]);
-        //printf("%s, hid=%d\n", STR[i], hid);
-        gstHashTb[hid].insert(STR[i], i+1);
+        int id = getNewId(STR[i]);
+        gstTb[id].insert(STR[i], i);
+        //printf("%s, id=%d\n", STR[i], id);
     }
 
-    bool bUnique = true;
-    for (int i = 0; i < N; i++)
+    if (N <= gNewId) printf("unique");
+    else
     {
-        //printf("input: %d %s\n", i + 1, STR[i]);
-        int hid = hash(STR[i]);
-        int firstIndex = 0;
-        for (Node* stTemp = gstHashTb[hid].head.next; stTemp != &gstHashTb[hid].tail; stTemp = stTemp->next)
+        for (int i = 1; i <= gNewId; i++)
         {
-            //문자열이 일치한다면? 해당노드에 check 표시를 한다.
-                //이미 checked된 문자열이라면? 해당 List를 더 이상 순회하지 않는다.
-                //else:
-                    //처음으로 일치한다면? firstIndex에 index값을 쓴다. firstIndex > 0
-                    //두번째로 일치한다면?
-                    //그 이상으로 일치한다면?
-            //else: 다음 node로 넘어간다.
-            //List 순회에 끝에 도달했으며, 해당 문자열이 동일 문자열이 있었다면? 출력문 한칸 뛴다.
-            if (0 == strcmp(STR[i], stTemp->str))
+            for (Node* stTemp = gstTb[i].head.next; stTemp != &gstTb[i].tail; stTemp = stTemp->next)
             {
-                if (true == stTemp->bChecked) break;
-                if (0 == firstIndex)
+                if (gstTb[i].head.next->next == &gstTb[i].tail) continue;
+                if (stTemp == gstTb[i].head.next)
                 {
-                    firstIndex = stTemp->id;
-                }
-                else if (firstIndex > 0)
-                {
-                    printf("%s %d %d", stTemp->str, firstIndex, stTemp->id);
-                    firstIndex = -1;
-                    bUnique = false;
+                    printf("%s %d", stTemp->str, stTemp->id);
                 }
                 else
                 {
                     printf(" %d", stTemp->id);
+                    if (stTemp->next == &gstTb[i].tail) printf("\n");
                 }
-                stTemp->bChecked = true;
             }
-            if (stTemp->next == &gstHashTb[hid].tail && firstIndex < 0) printf("\n");
         }
-    }
-    if (true == bUnique)
-    {
-        printf("unique");
     }
     return 0;
 }
