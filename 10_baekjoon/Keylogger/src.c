@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <malloc.h>
 
 #define LEFT  1
 #define RIGHT 2
@@ -27,57 +28,28 @@ public:
     }
 };
 
-Node g_notUsedNode[MAX_STRLEN];
-
 class List
 {
 private:
 public:
-    int m_usedNodeCnt;
-    int m_cursor;
     Node m_head;
     Node m_tail;
 
 public:
     List()
     {
-        m_usedNodeCnt  = 0;
-        m_cursor       = 0;
         m_head.m_pNext = &m_tail;
         m_tail.m_pPrev = &m_head;
     }
 
-    Node* setCursor(Node* pNode, int param)
-    {
-        assert(pNode != &m_tail);
-
-        Node* returnNode = pNode;
-
-        if (LEFT == param)
-        {
-            if (pNode != &m_head)
-            {
-                returnNode = pNode->m_pPrev;
-            }
-        }
-        else // (RIGHT == param)
-        {
-            if (pNode->m_pNext != &m_tail)
-            {
-                returnNode = pNode->m_pNext;
-            }
-        }
-        return returnNode;
-    }
-
     Node* _allocNode(char ch)
     {
-        Node* newNode = &g_notUsedNode[m_usedNodeCnt++];
+        Node* newNode = (Node*)malloc(sizeof(Node));
         newNode->ch = ch;
         return newNode;
     }
 
-    Node* insertNode(Node* pNode, char ch)
+    void insertNode(Node* pNode, char ch)
     {
         assert(pNode != &m_tail);
         Node* newNode = _allocNode(ch);
@@ -86,22 +58,15 @@ public:
         newNode->m_pNext = pNode->m_pNext;
 
         pNode->m_pNext->m_pPrev = newNode;
-        pNode->m_pNext          = newNode;
-        return newNode;
+        pNode->m_pNext = newNode;
+        //return newNode;
     }
 
-    Node* deleteNode(Node* pNode)
+    void deleteNode(Node* pNode)
     {
-        if (pNode == &m_head || pNode == &m_tail)
-        {
-            return pNode;
-        }
-        else
-        {
-            pNode->m_pPrev->m_pNext = pNode->m_pNext;
-            pNode->m_pNext->m_pPrev = pNode->m_pPrev;
-            return pNode->m_pPrev;
-        }
+        pNode->m_pPrev->m_pNext = pNode->m_pNext;
+        pNode->m_pNext->m_pPrev = pNode->m_pPrev;
+        free(pNode);
     }
 
     void printList()
@@ -113,7 +78,7 @@ public:
         printf("\n");
     }
 };
-
+char string[MAX_STRLEN];
 int main()
 {
     freopen("input.txt", "r", stdin);
@@ -122,13 +87,10 @@ int main()
     scanf("%d", &tcNum);
     for (int i = 0; i < tcNum; i++)
     {
-        memset(g_notUsedNode, 0, sizeof(g_notUsedNode));
-
-        char string[MAX_STRLEN];
         scanf("%s", string);
         int stringLen = strlen(string);
         //printf("%s %d\n", string, stringLen);
-        
+
         List objList;
         Node* cursorNode = &objList.m_head;
 
@@ -138,19 +100,31 @@ int main()
             switch (string[j])
             {
             case '<':
-                cursorNode = objList.setCursor(cursorNode, LEFT);
+                if (&objList.m_head != cursorNode)
+                {
+                    cursorNode = cursorNode->m_pPrev;
+                }
                 break;
 
             case '>':
-                cursorNode = objList.setCursor(cursorNode, RIGHT);
+                if (objList.m_tail.m_pPrev != cursorNode)
+                {
+                    cursorNode = cursorNode->m_pNext;
+                }
                 break;
 
             case '-':
-                cursorNode = objList.deleteNode(cursorNode);
+                if ((cursorNode != &objList.m_head) && (cursorNode != &objList.m_tail))
+                {
+                    Node* pPrev = cursorNode->m_pPrev;
+                    objList.deleteNode(cursorNode);
+                    cursorNode = pPrev;
+                }
                 break;
 
             default:
-                cursorNode = objList.insertNode(cursorNode, string[j]);
+                objList.insertNode(cursorNode, string[j]);
+                cursorNode = cursorNode->m_pNext;
                 break;
             }
         }
