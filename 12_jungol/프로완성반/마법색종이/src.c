@@ -40,7 +40,7 @@ public:
     }
 };
 
-Node gAllocNode[60000+10];
+Node gAllocNode[60000 + 10];
 int gUsedCnt;
 int gMaxArea;
 int gMinArea;
@@ -76,31 +76,22 @@ public:
     {
         Node* retNode = NULL;
 
-        if (r > pNode->sRow && r < pNode->eRow && c > pNode->sCol && c < pNode->eCol)
+        if (NULL == pNode->leftChild)
         {
-            if (NULL == pNode->leftChild)
-            {
-                retNode = pNode;
-            }
-            else
-            {
-                Node* pLeft = findLeafNode(pNode->leftChild, r, c);
-                Node* pRight = findLeafNode(pNode->rightChild, r, c);
-                if (NULL != pLeft)
-                {
-                    retNode = pLeft;
-                }
-                else
-                {
-                    retNode = pRight;
-                }
-            }
+            retNode = pNode;
         }
         else
         {
-            retNode = NULL;
+            if (r > pNode->leftChild->sRow && r < pNode->leftChild->eRow
+                && c > pNode->leftChild->sCol && c < pNode->leftChild->eCol)
+            {
+                retNode = findLeafNode(pNode->leftChild, r, c);
+            }
+            else
+            {
+                retNode = findLeafNode(pNode->rightChild, r, c);
+            }
         }
-
         return retNode;
     }
 };
@@ -133,7 +124,7 @@ int main()
             ln->rightChild = allocNode(row, ln->sCol, ln->eRow, ln->eCol, WHITE);
         }
     }
-    
+
     tree.update(&tree.root);
     printf("%d %d", gMaxArea, gMinArea);
     return 0;
